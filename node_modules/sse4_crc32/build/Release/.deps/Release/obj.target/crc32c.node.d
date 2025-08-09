@@ -1,0 +1,1 @@
+cmd_Release/obj.target/crc32c.node := g++ -o Release/obj.target/crc32c.node -shared -pthread -rdynamic -m64  -Wl,-soname=crc32c.node -Wl,--start-group Release/obj.target/crc32c/src/crc32c.o Release/obj.target/crc32c/src/table.o Release/obj.target/../node-addon-api/src/nothing.a Release/obj.target/sse42.a -Wl,--end-group 
