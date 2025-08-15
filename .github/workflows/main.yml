@@ -1,0 +1,48 @@
+name: Main
+
+on:
+  repository_dispatch:
+    types: [start_downloader_event]
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12.x"
+      - uses: FedericoCarboni/setup-ffmpeg@v1
+        with:
+          # Not strictly necessary, but it may prevent rate limit
+          # errors especially on GitHub-hosted macos machines.
+          token: ${{ secrets.GITHUB_TOKEN }}
+        id: setup-ffmpeg
+      - name: Run youtube-dl
+        run: node dist/index.js youtubedl ${{ github.event.client_payload.downloadVideoData }}
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          GITHUB_ACTION_RUN_ID: ${{ github.run_id }}
+          EMAIL_AUTH_CLIENT_ID: ${{ secrets.EMAIL_AUTH_CLIENT_ID }}
+          EMAIL_AUTH_CLIENT_SECRET: ${{ secrets.EMAIL_AUTH_CLIENT_SECRET }}
+          EMAIL_AUTH_REFRESH_TOKEN: ${{ secrets.EMAIL_AUTH_REFRESH_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.client_payload.videoOutputName }} #the name is the name of the downloaded zip, may as well get some extra branding in
+          path: downloaded
+          retention-days: 2
+      - name: Run artifactUploaded
+        run: node dist/index.js artifactUploaded ${{ github.event.client_payload.downloadVideoData }}
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          GITHUB_ACTION_RUN_ID: ${{ github.run_id }}
+          EMAIL_AUTH_CLIENT_ID: ${{ secrets.EMAIL_AUTH_CLIENT_ID }}
+          EMAIL_AUTH_CLIENT_SECRET: ${{ secrets.EMAIL_AUTH_CLIENT_SECRET }}
+          EMAIL_AUTH_REFRESH_TOKEN: ${{ secrets.EMAIL_AUTH_REFRESH_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
